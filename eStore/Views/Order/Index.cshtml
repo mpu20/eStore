@@ -1,0 +1,47 @@
+﻿@model IEnumerable<Order>
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor Accessor
+
+@{
+    ViewData["Title"] = "Order management";
+}
+
+<h2>Order</h2>
+<table class="table table-hover">
+    <thead class="table-light">
+        <tr>
+            <th scope="col">#</th>
+            @if (Accessor?.HttpContext?.Session.GetInt32("userID") == 1)
+            {
+                <th scope="col">Member ID</th>
+            }
+            <th scope="col">Order Date</th>
+            <th scope="col">Required Date</th>
+            <th scope="col">Shipped Date</th>
+            <th scope="col">Freight</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var order in Model)
+        {
+            <tr>
+                <th scope="row">@order.OrderId</th>
+                @if (Accessor?.HttpContext?.Session.GetInt32("userID") == 1)
+                {
+                    <td>@order.MemberId</td>
+                }
+                <td>@order.OrderDate.ToString("dd-MM-yyyy")</td>
+                <td>@(order.RequiredDate != null ? order.RequiredDate.Value.ToString("dd-MM-yyyy") : "")</td>
+                <td>@(order.ShippedDate != null ? order.ShippedDate.Value.ToString("dd-MM-yyyy") : "")</td>
+                <td>$@order.Freight.Value.ToString("0.00")</td>
+                <td>
+                    <div>
+                        <a asp-action="Detail" asp-route-id="@order.OrderId">View</a>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+

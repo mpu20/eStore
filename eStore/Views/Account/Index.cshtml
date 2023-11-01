@@ -1,0 +1,41 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor Accessor
+@model IEnumerable<Member>
+@{
+    ViewData["Title"] = "Account Management";
+}
+
+<h2>Account</h2>
+<button type="button" class="btn btn-primary" style="position: relative; float: right; margin: 10px;">
+    <a asp-action="Add" style="text-decoration: none;"><i class="bi bi-plus-circle-fill"></i> Add account</a>
+</button>
+<table class="table table-hover">
+    <thead class="table-light">
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Email</th>
+            <th scope="col">Company Name</th>
+            <th scope="col">City</th>
+            <th scope="col">Country</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var member in Model)
+        {
+            <tr>
+                <th scope="row">@member.MemberId</th>
+                <td>@member.Email</td>
+                <td>@member.CompanyName</td>
+                <td>@member.City</td>
+                <td>@member.Country</td>
+                <td>
+                    <div>
+                        <a asp-controller="Profile" asp-action="Index" asp-route-id="@member.MemberId"><i class="bi bi-pencil-square"></i> Edit</a>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+

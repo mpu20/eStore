@@ -1,0 +1,77 @@
+﻿@{
+    ViewData["Title"] = "Detail";
+}
+@{
+    decimal total = 0;
+}
+
+<section class="h-100 gradient-custom">
+    <div class="container py-5 h-100">
+        <div class="row d-flex justify-content-center align-items-center h-100">
+            <div class="col-lg-10 col-xl-8">
+                <div class="card" style="border-radius: 10px;">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <p class="lead fw-normal mb-0" style="color: #a8729a;">Order</p>
+                            <p class="small text-muted mb-0">Order ID : @ViewBag.order.OrderId</p>
+                        </div>
+                        @foreach (var orderDetail in ViewData["detailsWithProduct"] as List<Tuple<OrderDetail, Product>>)
+                        {
+                            <div class="card shadow-0 border mb-4">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-2">
+                                            <p class="text-muted mb-0">Product ID: @orderDetail.Item1.ProductId</p>
+                                        </div>
+                                        <div class="col-md-2 text-center d-flex justify-content-center align-items-center">
+                                            <p class="text-muted mb-0">@orderDetail.Item2.ProductName</p>
+                                        </div>
+                                        <div class="col-md-2 text-center d-flex justify-content-center align-items-center">
+                                            <p class="text-muted mb-0 small">Weight: @orderDetail.Item2.Weight</p>
+                                        </div>
+                                        <div class="col-md-2 text-center d-flex justify-content-center align-items-center">
+                                            <p class="text-muted mb-0 small">Price: $@orderDetail.Item1.UnitPrice.ToString("0.00")</p>
+                                        </div>
+                                        <div class="col-md-2 text-center d-flex justify-content-center align-items-center">
+                                            <p class="text-muted mb-0 small">Qty: @orderDetail.Item1.Quantity</p>
+                                        </div>
+                                        <div class="col-md-2 text-center d-flex justify-content-center align-items-center">
+                                            <p class="text-muted mb-0 small">$@((orderDetail.Item1.UnitPrice * orderDetail.Item1.Quantity).ToString("0.00"))</p>
+                                        </div>
+                                        @{total += orderDetail.Item1.UnitPrice * orderDetail.Item1.Quantity;}
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        <div class="d-flex justify-content-between pt-2">
+                            <p class="fw-bold mb-0">Order Details</p>
+                            <p class="text-muted mb-0"><span class="fw-bold me-4">Total</span> $@total.ToString("0.00")</p>
+                        </div>
+
+                        <div class="d-flex justify-content-between pt-2">
+                            <p class="text-muted mb-0">Order Date : @ViewBag.order.OrderDate.ToString("dd-MM-yyyy")</p>
+                            <p class="text-muted mb-0"><span class="fw-bold me-4">Discount</span> 0%</p>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <p class="text-muted mb-0">Required Date : @(ViewBag.order.RequiredDate != null ? ViewBag.order.RequiredDate.ToString("dd-MM-yyyy") : "")</p>
+                            <p class="text-muted mb-0"><span class="fw-bold me-4">Freight</span> $@ViewBag.order.Freight.ToString("0.00")</p>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-5">
+                            <p class="text-muted mb-0">Shipping Date : @(ViewBag.order.ShippedDate != null ? ViewBag.order.ShippedDate.ToString("dd-MM-yyyy") : "")</p>
+                        </div>
+                    </div>
+                    <div class="card-footer border-0 px-4 py-5"
+                         style="background-color: #a8729a; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;">
+                        <h5 class="d-flex align-items-center justify-content-end text-white text-uppercase mb-0">
+                            Total
+                            paid: <span class="h2 mb-0 ms-2">$@((total + ViewBag.order.Freight).ToString("0.00"))</span>
+                        </h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+

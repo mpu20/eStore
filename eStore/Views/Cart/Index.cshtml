@@ -1,0 +1,173 @@
+﻿@using Microsoft.AspNetCore.Http
+@using Newtonsoft.Json
+@inject IHttpContextAccessor Accessor
+@model Order
+
+@{
+    ViewData["Title"] = "Cart";
+}
+@{
+    string cartString = Accessor?.HttpContext?.Session.GetString("cart");
+    List<Cart>? carts = new List<Cart>();
+    if (cartString != null) carts = JsonConvert.DeserializeObject<List<Cart>>(cartString);
+    Decimal total = 0;
+}
+<section class="h-100">
+    <div class="container py-5">
+        <div class="row d-flex justify-content-center my-4">
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header py-3">
+                        <h5 class="mb-0">Cart - @(carts == null ? 0 : carts.Count) items</h5>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var cart in carts)
+                        {
+                            <div id="@("product" + cart.Product.ProductId)">
+                                <!-- Single item -->
+                                <div class="row">
+                                    <div class="col-lg-5 col-md-6 mb-4 mb-lg-0">
+                                        <!-- Data -->
+                                        <p><strong>@cart.Product.ProductName</strong></p>
+                                        <button type="button" class="btn btn-primary btn-sm me-1 mb-2" data-mdb-toggle="tooltip"
+                                                title="Remove item" onclick="removeItem(@cart.Product.ProductId)">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                        <!-- Data -->
+                                    </div>
+
+                                    <div class="col-lg-4 col-md-6 mb-4 mb-lg-0">
+                                        <!-- Quantity -->
+                                        <div class="d-flex mb-4" style="max-width: 300px; justify-content: center;">
+                                            <button class="btn btn-primary px-3 me-2"
+                                                    onclick="decrementAndUpdate()">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+
+                                            <div class="form-outline">
+                                                <input id="quantityInput" min="1" max="@cart.Product.UnitsInStock" name="quantity" value="@cart.Quantity" type="number" class="form-control" onchange="changeQuantity(@cart.Product.ProductId,this.value)" />
+                                            </div>
+
+                                            <button class="btn btn-primary px-3 ms-2"
+                                                    onclick="incrementAndUpdate()">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                        <!-- Quantity -->
+                                        <!-- Price -->
+                                        <p class="text-start text-md-center">
+                                            <strong>$@cart.Product.UnitPrice.ToString("0.##")</strong>
+                                        </p>
+                                        <!-- Price -->
+                                    </div>
+                                </div>
+                                <!-- Single item -->
+
+                                <hr class="my-4" />
+                            </div>
+                            total += cart.Quantity * cart.Product.UnitPrice;
+                        }
+                    </div>
+                </div>
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <p><strong>Expected shipping delivery</strong></p>
+                        <p class="mb-0">@DateTime.Today.ToString("dd/MM/yyyy") - <input form="checkoutForm" asp-for="RequiredDate" type="date" /></p>
+                    </div>
+                </div>
+                <div class="card mb-4 mb-lg-0">
+                    <div class="card-body">
+                        <p><strong>We accept</strong></p>
+                        <img class="me-2" width="45px"
+                             src="https://mdbcdn.b-cdn.net/wp-content/plugins/woocommerce-gateway-stripe/assets/images/visa.svg"
+                             alt="Visa" />
+                        <img class="me-2" width="45px"
+                             src="https://mdbcdn.b-cdn.net/wp-content/plugins/woocommerce-gateway-stripe/assets/images/amex.svg"
+                             alt="American Express" />
+                        <img class="me-2" width="45px"
+                             src="https://mdbcdn.b-cdn.net/wp-content/plugins/woocommerce-gateway-stripe/assets/images/mastercard.svg"
+                             alt="Mastercard" />
+                        <img class="me-2" width="45px"
+                             src="https://mdbcdn.b-cdn.net/wp-content/plugins/woocommerce/includes/gateways/paypal/assets/images/paypal.webp"
+                             alt="PayPal acceptance mark" />
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-header py-3">
+                        <h5 class="mb-0">Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 pb-0">
+                                Products
+                                <span id="total">@total.ToString("0.00")</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                Shipping
+                                <span><input form="checkoutForm" id="freight" asp-for="Freight" class="input-like-text" value="@(total < 20 ? 3.99 : (total < 50 ? 2.99 : 1.99))" style="text-align: right;" readonly /></span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 mb-3">
+                                <div>
+                                    <strong>Total amount</strong>
+                                    <strong>
+                                        <p class="mb-0">(including VAT)</p>
+                                    </strong>
+                                </div>
+                                <span><strong id="includeVAT">@(((double)total + (total < 20 ? 3.99 : (total < 50 ? 2.99 : 1.99))).ToString("0.00"))</strong></span>
+                            </li>
+                        </ul>
+
+                        <form id="checkoutForm" asp-controller="Order" asp-action="Checkout">
+                            <button type="submit" class="btn btn-primary btn-lg btn-block" style="float: right;">
+                                Checkout
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script type="text/javascript">
+        function incrementAndUpdate() {
+            var inputElement = document.getElementById('quantityInput');
+            inputElement.stepUp();
+            triggerChange(inputElement);
+        }
+
+        function decrementAndUpdate() {
+            var inputElement = document.getElementById('quantityInput');
+            inputElement.stepDown();
+            triggerChange(inputElement);
+        }
+
+        function triggerChange(element) {
+            document.getElementById('total').innerHTML = @total.ToString("0.00");
+            document.getElementById('freight').val = @(total < 20 ? 3.99 : (total < 50 ? 2.99 : 1.99));
+            document.getElementById('includeVAT').innerHTML = @(((double)total + (total < 20 ? 3.99 : (total < 50 ? 2.99 : 1.99))).ToString("0.00"));
+            var event = new Event('change', { bubbles: true });
+            element.dispatchEvent(event);
+            document.location.reload();
+        }
+
+        function changeQuantity(productID, newQuantity) {
+            $.ajax({
+                url: '@Url.Action("ChangeQuantity","Cart")' + '?id=' + productID + '&quantity=' + newQuantity,
+                type: 'POST'
+            });
+        }
+
+        function removeItem(productID) {
+            document.getElementById("product" + productID).remove();
+            $.ajax({
+                url: '@Url.Action("Remove","Cart")' + '?id=' + productID,
+                type: 'POST'
+            });
+            document.location.reload();
+        }
+    </script>
+}
